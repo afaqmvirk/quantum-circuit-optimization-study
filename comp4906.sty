@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{preproposal}[2026/11/24 COMP 4906 preproposal layout]
+\ProvidesPackage{comp4906}[2026/11/24 COMP 4906 thesis layout]
 
 \RequirePackage[letterpaper,margin=1in]{geometry}
 \RequirePackage[T1]{fontenc}
@@ -38,9 +38,11 @@
     \vspace{1pt}
     {\setlength{\baselineskip}{13.5pt}%
      \thesisauthor\\
+     Carleton University, School of Computer Science\\
      COMP 4906 -- #2\\
      Dr.\ Sriram Subramanian \&\\
-     Dr.\ Michel Barbeau\par}
+     Dr.\ Michel Barbeau\\
+     24 November 2026\par}
   \end{flushright}%
   \vspace{-6pt}%
 }
@@ -51,9 +53,9 @@
   \end{quote}%
 }
 
-\let\preproposal@bibliography\thebibliography
+\let\comphonours@bibliography\thebibliography
 \renewcommand{\thebibliography}[1]{%
-  \preproposal@bibliography{#1}%
+  \comphonours@bibliography{#1}%
   \fontsize{9}{11}\selectfont
   \setlength{\itemsep}{0pt}%
   \setlength{\parsep}{0pt}%
