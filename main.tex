@@ -7,205 +7,153 @@
 
 \section{Introduction}
 
-A quantum circuit is a list of gates (operations on quantum bits, or qubits). There are often several
-ways to carry out the same operation. This study will count controlled-NOT gates, or CX gates
-(two-qubit gates that flip one qubit when another is 1). Two-qubit gates are a useful target because
-they are typically a major source of errors on current quantum devices~\cite{ibm-opt}.
+Quantum compilers simplify redundant operations before a circuit runs on hardware, particularly
+two-qubit controlled-NOT gates (CX gates, which flip one qubit when another is 1). These gates are a
+major source of errors on current processors. Qiskit (IBM's quantum software toolkit) uses gate
+cancellation and block resynthesis (replacing groups of gates with equivalent implementations). Its
+highest built-in setting, level 3, can still leave reductions that another optimization pass can
+find~\cite{ibm-opt,ibm-stages,quspect}.
 
-Qiskit (IBM's quantum software toolkit) can already remove many redundant gates. Level 3 is its
-highest built-in optimization setting. Another optimizer can sometimes improve the result further. The
-question is whether a large language model (LLM) can find a reduction that a conventional optimizer
-misses on the same circuit in the same amount of time. The output must perform the same operation on
-every input~\cite{ibm-stages,quspect}.
+This thesis investigates whether frontier large language models (LLMs, the most capable available
+language models) can provide an effective second pass for quantum subroutines (circuits used within
+larger computations).
 
-\researchquestion{When can LLMs improve an already optimized quantum circuit?}
+\researchquestion{Can frontier LLMs improve already optimized quantum circuits?}
 
-\section{Related Work}
+The study will compare verified CX savings against conventional optimizers given the same circuits
+and time allowance. It will examine which circuit structures benefit and whether starting before or
+after Qiskit level 3 affects the result.
 
-Gu et al. used Claude to write programs that build quantum circuits from a description of the task.
-The model could choose a different algorithm or reorganize how the computation used its qubits.
-StabilizerBench (a benchmark for circuits used in quantum error correction) gives models an existing
-circuit and asks them to simplify it while still producing a required state from zero. This thesis
-will also start from an existing circuit. It will test circuits that can be called as part of a larger
-computation, so a rewrite has to work on every input, including superpositions (combinations of
-quantum states)~\cite{gu,stabilizerbench}.
+\section{Motivation and Related Work}
 
-Published compiler comparisons show why Qiskit level 3 alone is an incomplete reference for this
-question. Another conventional tool can still find savings on its output. This thesis uses tket (a
-general-purpose quantum compiler with passes for simplifying circuits) and QUESO (a circuit optimizer
-that searches through gate-replacement rules). tket gives a quick second pass, and QUESO gives the
-conventional method time to try more rewrites. The main comparison is between these tools and the
-models on the same level-3 outputs~\cite{tket,queso,quspect}.
+A strong comparison needs more than Qiskit level 3 alone. tket (a general-purpose quantum compiler)
+simplifies small groups of gates, while QUESO (an optimizer that searches through gate-replacement
+rules) explores alternative rewrites. Compiler comparisons show that both fast passes and longer
+searches can recover savings after initial compilation. Their results provide the reference that an
+LLM must improve upon~\cite{tket,queso,quspect}.
+
+Gu et al. showed that Claude can design compact circuits from task descriptions by changing the
+underlying algorithm. StabilizerBench (a benchmark for quantum error-correction circuits) tests
+whether models can simplify an existing circuit while preserving a required state prepared from
+zero. The proposed study instead supplies a fixed circuit and checks its full unitary (the matrix
+describing its operation on every input). Arithmetic and simulation subroutines can receive
+superpositions (combinations of quantum states), where incorrect relative phases (phase differences
+between components) can change the computation. Full-operation checking supports substituting the
+rewrite in a larger circuit~\cite{gu,stabilizerbench,draper,burgholzer-wille}.
 
 \Needspace{17\baselineskip}
 \section{Methodology}
 
-\subsection{Test Circuits}
+\subsection{Benchmark Families}
 
-The study will use 48 circuits on three to eight qubits. Limiting the size makes a full check
-practical for every candidate. The three groups put different patterns in the gate list, including
-repeated carries (passing overflow between digits), repeated physical interactions, and repeated
-layers of adjustable gates.
+Circuits will span three to eight qubits, allowing each candidate's complete matrix to be checked.
+The final instance count, parameter choices, and repeat cases will be set after development testing
+and recorded before evaluation.
 
 \par\smallskip
 \begingroup\small
 \noindent
 \begin{tabularx}{\textwidth}{@{}
-  >{\raggedright\arraybackslash}p{0.205\textwidth}
+  >{\raggedright\arraybackslash}p{0.235\textwidth}
   >{\raggedright\arraybackslash}X
   @{}}
   \toprule
-  \textbf{Circuit group} & \textbf{Evaluation instances} \\
+  \textbf{Circuit family} & \textbf{Representative constructions} \\
   \midrule
-  Arithmetic (16) &
-    Cuccaro adders (\texttt{adder\_ripple\_c04}) of widths 1--3 and Vedral--Barenco--Ekert adders
-    (\texttt{adder\_ripple\_v95}, or VBE) of width 2, each in fixed, half, and full modes. Draper
-    adders (\texttt{adder\_qft\_d00}) of widths 2 and 3 in fixed and half modes. \\
+  Quantum arithmetic &
+    Cuccaro and Vedral--Barenco--Ekert ripple-carry adders (circuits that pass overflow between
+    digits), and Draper Fourier adders (circuits that add through phase rotations). Vary carry modes
+    and retain all ancillas (temporary working qubits). \\
   \addlinespace[2pt]
-  Simulation (16) &
-    One first-order Trotter step (an approximation that applies interactions one at a time) for each
-    of two Hamiltonians (descriptions of a quantum system's interactions and fields), on 3--6 qubits
-    at two simulated times. \\
+  Hamiltonian simulation &
+    First-order Trotter steps (applying interactions in sequence to approximate a system's
+    evolution) for qubits coupled along a chain. Use $ZZ$ couplings with $X$ fields and $XX+YY+ZZ$
+    couplings with $Z$ fields, at several evolution times. \\
   \addlinespace[2pt]
-  Adjustable circuits (16) &
-    Qiskit's \texttt{real\_amplitudes} template (layers of adjustable rotations connected by CX
-    gates), on 3--6 qubits, with CX connections along a chain or ring and one or two repetitions. \\
+  Variational circuits &
+    Qiskit's RealAmplitudes templates (layers of adjustable rotations and CX gates), varying chain
+    or ring connections, layer count, and rotation angles. \\
   \bottomrule
 \end{tabularx}
 \par\endgroup\smallskip
 
-Use the adder constructors in \texttt{qiskit.synthesis.arithmetic.adders}. The width is the number of
-qubits used to store each input number. Fixed mode discards overflow, half mode writes an overflow
-bit, and full mode also accepts an incoming carry bit. Keep all wires, including ancillas (temporary
-working qubits)~\cite{cuccaro,vbe,draper}.
+In the simulation circuits, $X$, $Y$, and $Z$ are basic one-qubit operations. Couplings act between
+neighbours and fields act on individual qubits. Development cases from all three families will be
+used to finalize the prompt, gate format, and conversions between tools. The arithmetic
+constructions follow established designs~\cite{cuccaro,vbe,draper}.
 
-For simulation, use $X$, $Y$, and $Z$ (three basic one-qubit operations). The first Hamiltonian uses
-$ZZ$ bonds (terms coupling adjacent qubits) followed by $X$ fields (terms acting on individual
-qubits). The second uses $XX$, $YY$, and $ZZ$ bonds in that order, followed by $Z$ fields. Apply each
-term $P$ from left to right as $e^{-itP}$ (the rotation due to that term), using a single-term
-\texttt{PauliEvolutionGate} with coefficient 1. Enumerate qubit counts in ascending order, then
-Hamiltonians, then times $\pi/16$ and $\pi/8$.
+\Needspace{8\baselineskip}
+\subsection{Experimental Protocol}
 
-For the adjustable circuits, enumerate sizes in ascending order, chains before rings, and one
-repetition before two. Assign angles in Qiskit's parameter order. Draw them with
-\texttt{random.Random(20261124)} from $[-3\pi/8,-\pi/4,-\pi/8,\pi/8,\pi/4,3\pi/8]$ in that order.
+Normalize each circuit with Qiskit level 0 into the same basis (allowed gates) of $u$ (an arbitrary
+one-qubit gate) and CX. Preserve the operation without approximate synthesis, allow any qubit pair
+to interact, and allow general initial states. Run level 3 on that circuit to obtain the optimized
+version. Both versions serve as paired starting points. Any tool that reorders wires must include
+and count the gates needed to restore their original order~\cite{ibm-api}.
 
-Use six other circuits to develop the prompt and check that conversions preserve the original circuit.
-Use width-1 VBE fixed and full adders, the first Hamiltonian on three and four qubits at $\pi/12$, and
-three- and four-qubit \texttt{real\_amplitudes} circuits with one \texttt{reverse\_linear} repetition
-(the chain gates in reverse order) and all angles $\pi/12$. Record the evaluation circuits, code,
-prompts, settings, and trial order before collecting evaluation outputs.
-
-\Needspace{10\baselineskip}
-\subsection{Comparison Procedure}
-
-Use Qiskit 2.6.2 level 0 to put each circuit into the same basis (allowed set of gates) of
-\texttt{u} (any one-qubit gate) and \texttt{cx}. Use that version as the first input, then run
-level 3 on it to make the second. Both calls allow any pair of qubits to interact. Both use the
-same settings.
+Each method receives 180 seconds per starting circuit, including input conversion, search or model
+generation, provider wait, and verification.
 
 \begin{itemize}
-  \item \texttt{seed\_transpiler=17} (the random seed).
-  \item \texttt{approximation\_degree=1.0} (requests exact gate synthesis).
-  \item \texttt{qubits\_initially\_zero=False} (allows general inputs).
+  \item \textbf{Conventional optimizers.} Give tket's FullPeepholeOptimise pass up to 10 seconds,
+  with implicit swaps (unrecorded wire relabelling) disabled. Run QUESO from the same starting
+  circuit for the remaining time, using GUOQ (the software providing QUESO's search) and the Nam
+  basis (CX, H, X, and rotations about Z). QUESO uses beam search (retaining a limited set of
+  promising circuits at each step). Keep every verified improvement available by the
+  deadline~\cite{tket-adapter,guoq-code}.
+  \item \textbf{Frontier LLMs.} Select GPT-5.6-Sol and comparable frontier reasoning models before
+  evaluation. Give each a fresh session with tools disabled and a JSON gate list (structured text),
+  qubit count, and starting CX count. Omit circuit names and compilation stage. Allow up to two
+  submissions within the time limit. After the first, return syntax errors, verification status, and
+  any verified CX count for one revision.
 \end{itemize}
 
-If a tool reorders the wires, add and count the gates needed to restore their original order.
-Check both starting circuits against the original operation~\cite{ibm-api}.
-
-For each starting circuit, give the conventional tools 180 seconds in total. Start with tket 2.18.5
-and \texttt{pytket-qiskit} 0.79.0 (the interface between tket and Qiskit). Give tket at most 10
-seconds. Use \texttt{FullPeepholeOptimise} (a pass that simplifies blocks of gates) with
-\texttt{allow\_swaps=False} and \texttt{target\_2qb\_gate=OpType.CX}. Express the result in TK1/CX
-(tket's general one-qubit gate and CX), with automatic wire relabelling disabled~\cite{tket-adapter}.
-
-Run QUESO on the same starting circuit for the remaining time. GUOQ is the software that provides
-the QUESO search used here. Convert the input at Qiskit level 0 to the Nam basis (CX, H, X, and
-rotations about Z) and verify that both the operation and CX count are preserved. Use the revision
-and flags below. Beam search keeps a limited set of promising circuits at each step. Check any
-saved intermediate result that arrives in time~\cite{guoq-code}.
-
-\begin{quote}
-  \small
-  \texttt{GUOQ revision 8c4c3a5a6dfc9f7fc375ec16c2180139f0a8cb1a}\\
-  \texttt{-g NAM -opt TWO\_Q -search BEAM -temp 0 -q 8000 -resynth NONE}
-\end{quote}
-
-Give each LLM the qubit count, the CX count, and the gates in JSON (a structured text format). Use the
-same instructions in both conditions and omit the circuit name and compilation stage. The model
-returns an ordered gate list with at most two submissions in 180 seconds. After the first submission,
-give it the check result, the count if the list was readable, and any format error. Start a new
-conversation for each trial. Render one-qubit gates as H, X, Y, Z, S, S\textdagger{}, T, or
-T\textdagger{} in that order when the match is within $10^{-12}$ up to global phase (one common
-complex multiplier of magnitude one). Use \texttt{u} otherwise. Angles are multiples of $\pi$ rounded
-to 15 decimal places. Check the text version against the original circuit. Accept a JSON array,
-optionally in a code block, with CX and \texttt{u,h,x,y,z,s,sdg,t,tdg,rx,ry,rz,p}.
-
-Run GPT-5.6-Sol through the signed-in Codex CLI (OpenAI's command-line client), at medium reasoning
-effort in an empty temporary directory with tools and project context disabled. Accept calls with no
-tool events. Run \texttt{qwen3-coder:30b} in Ollama (software for running models locally). Use
-Q4\_K\_M quantization (compressed model weights), temperature 0.3 (a setting for sampling randomness),
-a context of 12,288 tokens (pieces of text), and at most 3,584 tokens per reply. Use seeds 100 and 101
-for the two submissions and 102 and 103 for repeats. Confirm access in development and record model
-identifiers, run settings, software versions, hardware, and the digest (identifier of the exact local
-model files).
-
-Measure elapsed time from the start of input conversion or prompt construction through search or reply
-generation, verification, and selection. Include any wait for the model provider. Run trials serially
-(one at a time) and shuffle the main model trials with \texttt{random.Random(20261125)}. There will be
-192 main trials and 48 repeats. Repeat both models on both starting circuits for Cuccaro width-2 fixed
-and width-3 full, VBE width-2 half, Draper width-3 half, and cases 1, 6, 11, and 16 of each other
-group in the order specified above. This bounds the evaluation at 480 model submissions and 12 hours
-of model-trial time, plus 4.8 hours for the conventional runs.
+Run trials one at a time in a reproducibly shuffled order. Repeat a subset covering each circuit
+family and both starting points to assess consistency. Record model versions, prompts, sampling
+settings, software, hardware, and circuit choices before evaluation.
 
 \Needspace{10\baselineskip}
-\subsection{Correctness and Analysis}
+\subsection{Verification and Analysis}
 
-Check every candidate against the original unitary (the matrix describing the circuit's operation on
-every input). Convert the candidate to the common basis at level 0 and use the original wire order.
-For the reference $U$ and candidate $V$, set $s=\operatorname{Tr}(V^\dagger U)$ (the sum of the
-diagonal entries of $V^\dagger U$), where $V^\dagger$ is the conjugate transpose of $V$. Set
-$\lambda=s/|s|$ if $s$ is nonzero and $\lambda=1$ otherwise. Accept when every entry of $U-\lambda V$
-differs from zero by at most $10^{-8}$ in double precision (64-bit floating point per real component).
-Record the phase if the circuit will be run under coherent control (conditioned on another qubit
-without measuring it).
+Map every candidate back to $u$ and CX in the original wire order. For reference matrix $U$ and
+candidate $V$, compute $s=\operatorname{Tr}(V^\dagger U)$ (their matrix overlap). Set
+$\lambda=s/|s|$ for nonzero $s$, or $\lambda=1$ otherwise. Accept only if every entry of $U-\lambda
+V$ has magnitude at most $10^{-8}$ in double precision (64-bit arithmetic per real component). This
+checks the full operation within numerical tolerance, allowing a global phase (one common complex
+factor of magnitude one). Record that phase for any later controlled use, where it can affect the
+surrounding circuit~\cite{burgholzer-wille,qiskit-phase}.
 
-Test the checker on circuits that agree up to global phase, circuits with an incorrect wire order or
-relative phase (a phase difference between parts of a state), and circuits that agree only on the
-all-zero input. Verify known CX minima of 0 for identity (no operation), 1 for CX, 2 for iSWAP (an
-exchange with added phase factors), and 3 for SWAP (exchange of qubit states). Reject bad wire
-indices, non-finite angles, changes in qubit count, measurements, resets, conditional gates based on
-classical bits, and unsupported operations. Keep the starting circuit eligible and choose the verified
-candidate with the fewest CX gates by the deadline. Break ties by CX depth (the number of sequential
-layers of CX gates), then by earliest verification~\cite{shende}.
+Validate the checker on phase changes, incorrect wire order, circuits that agree only on zero input,
+and known CX minima of 0 for identity (no change), 1 for CX, 2 for iSWAP (exchange with phase
+factors), and 3 for SWAP (exchange of qubit states). Reject unsupported operations, measurements,
+resets, classical conditionals, and width changes. Retain the starting circuit as a fallback. Choose
+the fewest CX gates, breaking ties by CX depth (sequential CX layers) and earliest
+verification~\cite{shende}.
 
-On each level-3 circuit, subtract the model's best CX count from the conventional tools' best CX
-count. Positive values are model wins. Report wins, ties, losses, total and median CX differences, and
-gains beyond level 3. Record failed submissions, one-qubit gate count, depth, and elapsed time,
-including which gains are available by 10, 60, and 180 seconds. For the paired comparison, compare the
-model's final counts before and after level 3. Use the best conventional count from either start to
-identify a reduction that may have been missed when starting from the compiled version. Report results
-by group and construction, inspect the largest wins alongside similar ties or losses, and report
-repeats separately.
+Report model wins, ties, losses, and total and median CX differences on the level-3 inputs. Include
+depth, failures, and savings available by 10, 60, and 180 seconds. Compare final gate counts from
+the two starting points and check whether improvements recur in repeats. Inspect representative wins
+alongside similar ties and losses to identify the structures responsible.
 
-\Needspace{7\baselineskip}
-\section{Expected Results}
+\Needspace{8\baselineskip}
+\section{Preliminary Findings and Expected Results}
 
-In first-term testing on 12 circuits, Qiskit level 3 used 159 CX gates. A tket pass took the total to
-153. Starting with the same level-3 inputs, GPT-5.6-Sol reached 118, with all three improvements on
-Cuccaro adders. Qwen3-Coder found no additional savings on these inputs. The median GPT trial took
-45.6 seconds, while the median tket pass with verification took 0.086 seconds. The planned comparison
-gives the conventional search more time and covers other ways of building an adder. It will mark
-constructions that appeared in the first-term test.
+In a 12-circuit pilot, Qiskit level 3 used 159 CX gates. tket reduced the total to 153, taking a
+median 0.086 seconds per circuit including verification. GPT-5.6-Sol reached 118 on the same inputs,
+taking a median 45.6 seconds, with all three improvements on Cuccaro adders. A local Qwen3-Coder
+model found no additional savings. Each total keeps the starting circuit when no better output
+verifies. These results motivate testing frontier models, broader constructions, and a longer
+conventional search.
 
-I expect conventional tools to recover many of the reductions left after Qiskit. A model may have an
-advantage when it recognizes a repeated operation and can replace several parts of the circuit
-together. Wins on different adder designs would support a broader use than wins on several versions of
-the same design. If an ordinary optimizer reaches the same counts sooner, it is the better second pass
-for those cases. The results will also show whether the model is more useful when it sees a circuit
-before level 3.
+I expect QUESO to recover many reductions left by Qiskit. LLMs may retain an advantage where
+coordinated changes across repeated operations help. The study will establish where those gains
+recur and what they cost in time. If conventional search reaches the same or better circuits sooner,
+it is the more effective second pass for those cases.
 
-\Needspace{21\baselineskip}
+The thesis will deliver the benchmark circuits, tested verifier, model and compiler interfaces,
+complete trial logs, and a report explaining when LLMs add value to circuit optimization.
+
+\Needspace{19\baselineskip}
 \section{Second-Term Schedule}
 
 \par\smallskip
@@ -215,37 +163,33 @@ before level 3.
   >{\raggedright\arraybackslash}X
   @{}}
   \toprule
-  \textbf{Period (2027)} & \textbf{Work and milestone} \\
+  \textbf{Period (2027)} & \textbf{Milestone} \\
   \midrule
   January 6--19 &
-    Generate the 48 circuit pairs and six development cases. Verify their wire order and full
-    operation. Finish the gate format and known-answer tests. \\
+    Finalize circuit families, development cases, gate format, and verifier tests. \\
   \addlinespace[2pt]
   January 20--February 2 &
-    Complete the tket and QUESO adapters, confirm model access and timing, run the development
-    controls, and freeze the evaluation manifest. \\
+    Complete compiler and model interfaces, check access and timing, and record the evaluation
+    protocol. \\
   \addlinespace[2pt]
   February 3--16 &
-    Run the conventional comparisons and the first half of the model trials. Check the logs for
-    parsing, verification, and timing errors. \\
+    Run conventional comparisons and the first half of the LLM trials. \\
   \addlinespace[2pt]
   February 17--March 2 &
-    Complete the 192 main model trials and the 48 repeat trials. Reproduce the result tables from the
-    recorded candidates. \\
+    Complete the main trials and repeats. Reproduce result tables from verified outputs. \\
   \addlinespace[2pt]
   March 3--16 &
-    Analyse gate counts, depth, and time by circuit construction and starting point. Inspect verified
-    wins and comparable ties and losses. \\
+    Analyse gate counts, depth, time, and starting-point effects by circuit family. Inspect
+    representative rewrites. \\
   \addlinespace[2pt]
   March 17--30 &
-    Write the thesis and prepare the figures and reproducibility package. \\
+    Write the thesis draft, prepare figures, and assemble the code and data package. \\
   \addlinespace[2pt]
   March 31--April 13 &
-    Give the first thesis draft to the supervisor by April 2. Revise the report and prepare
-    presentation material. \\
+    Send the draft to supervisors by April 2. Revise the report and prepare the presentation. \\
   \addlinespace[2pt]
   April 14--16 &
-    Check the final report, code, and data package. Submit the thesis by April 16. \\
+    Check the report and supporting files. Submit the thesis by April 16. \\
   \bottomrule
 \end{tabularx}
 \par\smallskip
