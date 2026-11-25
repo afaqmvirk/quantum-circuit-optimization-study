@@ -1,0 +1,14 @@
+The pilot compared GPT-5.6-Sol, Qwen3-Coder 30B, and tket on 12 circuits.
+On the Qiskit level-3 inputs, the starting circuits used 159 CX gates in total.
+GPT finished with 118, tket with 153, and Qwen with 159. GPT beat tket on
+three Cuccaro adders and tied it on the other nine circuits.
+
+results.json contains the baseline counts and one result per model, circuit,
+and starting condition. Each effective CX count retains the starting circuit
+if no verified submission improves it. The raw condition starts from a circuit
+translated to the common gate set. The qiskit3 condition starts after Qiskit
+level-3 optimization.
+
+cases.json contains the circuits. manifest.json records the prompt, model
+settings, and software versions. The model folders contain individual attempts.
+audit.json records the verification replay and paired comparisons.

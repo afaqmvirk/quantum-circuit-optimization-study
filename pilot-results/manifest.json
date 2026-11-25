@@ -1,0 +1,30 @@
+{
+  "models": [
+    "gpt-5.6-sol",
+    "qwen3-coder:30b"
+  ],
+  "transport": {
+    "gpt-5.6-sol": {
+      "client": "codex-cli 0.147.0",
+      "effort": "medium"
+    },
+    "qwen3-coder:30b": {
+      "name": "qwen3-coder:30b",
+      "digest": "06c1097efce0431c2045fe7b2e5108366e43bee1b4603a7aded8f21689e90bca",
+      "quantization": "Q4_K_M",
+      "ollama_version": "0.40.16",
+      "temperature": 0.3
+    }
+  },
+  "input_seed": 613117,
+  "qiskit_seed": 17,
+  "rounds": 2,
+  "packages": {
+    "qiskit": "2.6.2",
+    "numpy": "2.5.5",
+    "pytket": "2.18.5",
+    "pytket-qiskit": "0.79.0"
+  },
+  "tolerance": 1e-08,
+  "system_prompt": "Optimize the supplied quantum circuit, minimizing CX count while preserving the full\noperation up to global phase on all input states. Keep the same qubit count and output order.\nNo extra wires, reset, or measurement. You may return the input if you cannot improve it.\nReturn only a JSON array of gates in execution order. Gate forms:\n[\"cx\", control, target], [\"h\", q] (also x, y, z, s, sdg, t, tdg),\n[\"rx\", q, angle] (also ry, rz, p), or [\"u\", q, theta, phi, lambda].\nAll angles are multiples of pi, e.g. [\"rz\", 0, 0.25] means RZ(pi/4).\nWhen copying a parameterized gate, retain its supplied precision.\nThe final array is evaluated independently. Use the input and feedback provided here."
+}

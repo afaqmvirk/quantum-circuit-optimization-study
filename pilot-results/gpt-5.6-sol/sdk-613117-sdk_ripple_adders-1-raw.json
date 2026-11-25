@@ -1,0 +1,87 @@
+{
+  "model": "gpt-5.6-sol",
+  "case_id": "sdk-613117-sdk_ripple_adders-1",
+  "condition": "raw",
+  "attempts": [
+    {
+      "request": [
+        {
+          "role": "system",
+          "content": "Optimize the supplied quantum circuit, minimizing CX count while preserving the full\noperation up to global phase on all input states. Keep the same qubit count and output order.\nNo extra wires, reset, or measurement. You may return the input if you cannot improve it.\nReturn only a JSON array of gates in execution order. Gate forms:\n[\"cx\", control, target], [\"h\", q] (also x, y, z, s, sdg, t, tdg),\n[\"rx\", q, angle] (also ry, rz, p), or [\"u\", q, theta, phi, lambda].\nAll angles are multiples of pi, e.g. [\"rz\", 0, 0.25] means RZ(pi/4).\nWhen copying a parameterized gate, retain its supplied precision.\nThe final array is evaluated independently. Use the input and feedback provided here."
+        },
+        {
+          "role": "user",
+          "content": "Qubits: 6. Input CX count: 29.\nInput gates:\n[[\"h\",2],[\"cx\",1,2],[\"tdg\",2],[\"cx\",0,2],[\"t\",2],[\"cx\",1,2],[\"t\",1],[\"tdg\",2],[\"cx\",0,2],[\"cx\",0,1],[\"t\",0],[\"tdg\",1],[\"cx\",0,1],[\"t\",2],[\"h\",2],[\"h\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",3,4],[\"t\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",3,4],[\"t\",4],[\"h\",4],[\"h\",4],[\"t\",5],[\"cx\",3,5],[\"t\",3],[\"tdg\",5],[\"cx\",3,5],[\"cx\",3,5],[\"cx\",5,4],[\"tdg\",4],[\"cx\",2,4],[\"t\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",2,4],[\"t\",4],[\"h\",4],[\"t\",5],[\"cx\",2,5],[\"t\",2],[\"tdg\",5],[\"cx\",2,5],[\"cx\",3,5],[\"cx\",3,5],[\"cx\",2,5],[\"h\",2],[\"cx\",1,2],[\"tdg\",2],[\"cx\",0,2],[\"t\",2],[\"cx\",1,2],[\"t\",1],[\"tdg\",2],[\"cx\",0,2],[\"cx\",0,1],[\"t\",0],[\"tdg\",1],[\"cx\",0,1],[\"cx\",0,1],[\"t\",2],[\"h\",2]]\nReturn your first gate array."
+        }
+      ],
+      "reply": {
+        "content": "[[\"h\",2],[\"cx\",1,2],[\"tdg\",2],[\"cx\",0,2],[\"t\",2],[\"cx\",1,2],[\"t\",1],[\"tdg\",2],[\"cx\",0,2],[\"cx\",0,1],[\"t\",0],[\"tdg\",1],[\"cx\",0,1],[\"t\",2],[\"h\",2],[\"h\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",3,4],[\"t\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",3,4],[\"t\",4],[\"t\",5],[\"cx\",3,5],[\"t\",3],[\"tdg\",5],[\"cx\",5,4],[\"tdg\",4],[\"cx\",2,4],[\"t\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",2,4],[\"t\",4],[\"h\",4],[\"t\",5],[\"cx\",2,5],[\"t\",2],[\"tdg\",5],[\"h\",2],[\"cx\",1,2],[\"tdg\",2],[\"cx\",0,2],[\"t\",2],[\"cx\",1,2],[\"t\",1],[\"tdg\",2],[\"cx\",0,2],[\"cx\",0,1],[\"t\",0],[\"tdg\",1],[\"t\",2],[\"h\",2]]",
+        "usage": {
+          "input_tokens": 8867,
+          "cached_input_tokens": 6528,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 3845,
+          "reasoning_output_tokens": 3509
+        },
+        "elapsed_seconds": 71.5,
+        "model": "gpt-5.6-sol",
+        "reasoning_effort": "medium",
+        "observed_tool_calls": 0,
+        "sampling_seed": null,
+        "sampling_temperature": null
+      },
+      "model_seconds": 71.49562219996005,
+      "status": "verified",
+      "cx": 21,
+      "one_qubit": 34,
+      "total": 55,
+      "depth": 29,
+      "residual": 2.799172292905668e-15,
+      "verification_seconds": 0.00489069998729974
+    },
+    {
+      "request": [
+        {
+          "role": "system",
+          "content": "Optimize the supplied quantum circuit, minimizing CX count while preserving the full\noperation up to global phase on all input states. Keep the same qubit count and output order.\nNo extra wires, reset, or measurement. You may return the input if you cannot improve it.\nReturn only a JSON array of gates in execution order. Gate forms:\n[\"cx\", control, target], [\"h\", q] (also x, y, z, s, sdg, t, tdg),\n[\"rx\", q, angle] (also ry, rz, p), or [\"u\", q, theta, phi, lambda].\nAll angles are multiples of pi, e.g. [\"rz\", 0, 0.25] means RZ(pi/4).\nWhen copying a parameterized gate, retain its supplied precision.\nThe final array is evaluated independently. Use the input and feedback provided here."
+        },
+        {
+          "role": "user",
+          "content": "Qubits: 6. Input CX count: 29.\nInput gates:\n[[\"h\",2],[\"cx\",1,2],[\"tdg\",2],[\"cx\",0,2],[\"t\",2],[\"cx\",1,2],[\"t\",1],[\"tdg\",2],[\"cx\",0,2],[\"cx\",0,1],[\"t\",0],[\"tdg\",1],[\"cx\",0,1],[\"t\",2],[\"h\",2],[\"h\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",3,4],[\"t\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",3,4],[\"t\",4],[\"h\",4],[\"h\",4],[\"t\",5],[\"cx\",3,5],[\"t\",3],[\"tdg\",5],[\"cx\",3,5],[\"cx\",3,5],[\"cx\",5,4],[\"tdg\",4],[\"cx\",2,4],[\"t\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",2,4],[\"t\",4],[\"h\",4],[\"t\",5],[\"cx\",2,5],[\"t\",2],[\"tdg\",5],[\"cx\",2,5],[\"cx\",3,5],[\"cx\",3,5],[\"cx\",2,5],[\"h\",2],[\"cx\",1,2],[\"tdg\",2],[\"cx\",0,2],[\"t\",2],[\"cx\",1,2],[\"t\",1],[\"tdg\",2],[\"cx\",0,2],[\"cx\",0,1],[\"t\",0],[\"tdg\",1],[\"cx\",0,1],[\"cx\",0,1],[\"t\",2],[\"h\",2]]\nReturn your first gate array."
+        },
+        {
+          "role": "assistant",
+          "content": "[[\"h\",2],[\"cx\",1,2],[\"tdg\",2],[\"cx\",0,2],[\"t\",2],[\"cx\",1,2],[\"t\",1],[\"tdg\",2],[\"cx\",0,2],[\"cx\",0,1],[\"t\",0],[\"tdg\",1],[\"cx\",0,1],[\"t\",2],[\"h\",2],[\"h\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",3,4],[\"t\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",3,4],[\"t\",4],[\"t\",5],[\"cx\",3,5],[\"t\",3],[\"tdg\",5],[\"cx\",5,4],[\"tdg\",4],[\"cx\",2,4],[\"t\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",2,4],[\"t\",4],[\"h\",4],[\"t\",5],[\"cx\",2,5],[\"t\",2],[\"tdg\",5],[\"h\",2],[\"cx\",1,2],[\"tdg\",2],[\"cx\",0,2],[\"t\",2],[\"cx\",1,2],[\"t\",1],[\"tdg\",2],[\"cx\",0,2],[\"cx\",0,1],[\"t\",0],[\"tdg\",1],[\"t\",2],[\"h\",2]]"
+        },
+        {
+          "role": "user",
+          "content": "Verifier status: verified. Candidate CX count: 21. Return your final gate array."
+        }
+      ],
+      "reply": {
+        "content": "[[\"h\",2],[\"cx\",1,2],[\"tdg\",2],[\"cx\",0,2],[\"t\",2],[\"cx\",1,2],[\"t\",1],[\"tdg\",2],[\"cx\",0,2],[\"cx\",0,1],[\"t\",0],[\"tdg\",1],[\"cx\",0,1],[\"t\",2],[\"h\",2],[\"h\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",3,4],[\"t\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",3,4],[\"t\",4],[\"t\",5],[\"cx\",3,5],[\"t\",3],[\"tdg\",5],[\"cx\",5,4],[\"tdg\",4],[\"cx\",2,4],[\"t\",4],[\"cx\",5,4],[\"tdg\",4],[\"cx\",2,4],[\"t\",4],[\"h\",4],[\"t\",5],[\"cx\",2,5],[\"t\",2],[\"tdg\",5],[\"h\",2],[\"cx\",1,2],[\"tdg\",2],[\"cx\",0,2],[\"t\",2],[\"cx\",1,2],[\"t\",1],[\"tdg\",2],[\"cx\",0,2],[\"cx\",0,1],[\"t\",0],[\"tdg\",1],[\"t\",2],[\"h\",2]]",
+        "usage": {
+          "input_tokens": 9268,
+          "cached_input_tokens": 6528,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 371,
+          "reasoning_output_tokens": 35
+        },
+        "elapsed_seconds": 9.40700000000652,
+        "model": "gpt-5.6-sol",
+        "reasoning_effort": "medium",
+        "observed_tool_calls": 0,
+        "sampling_seed": null,
+        "sampling_temperature": null
+      },
+      "model_seconds": 9.421136199962348,
+      "status": "verified",
+      "cx": 21,
+      "one_qubit": 34,
+      "total": 55,
+      "depth": 29,
+      "residual": 2.799172292905668e-15,
+      "verification_seconds": 0.004043000051751733
+    }
+  ]
+}

@@ -1,0 +1,394 @@
+{
+  "baseline_totals": {
+    "raw": 173,
+    "qiskit3": 159,
+    "qiskit3_tket": 153,
+    "tket_median_seconds": 0.08554239996010438
+  },
+  "trials": [
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-448201-sdk_ripple_adders-7",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 11,
+      "seconds": 56.22275139996782
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-448201-sdk_ripple_adders-7",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 10,
+      "seconds": 62.01367620006204
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_pauli_evolution-0",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 4,
+      "seconds": 34.72376419987995
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_pauli_evolution-0",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 4,
+      "seconds": 38.780141000053845
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_pauli_evolution-1",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 5,
+      "seconds": 40.89648939995095
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_pauli_evolution-1",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 5,
+      "seconds": 31.281106499955058
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_pauli_evolution-2",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 5,
+      "seconds": 48.4217447998235
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_pauli_evolution-2",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 5,
+      "seconds": 40.3715428999858
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_pauli_evolution-3",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 6,
+      "seconds": 42.7804260001285
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_pauli_evolution-3",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 6,
+      "seconds": 49.554818400065415
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_real_amplitudes-0",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 2,
+      "seconds": 14.17558440018911
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_real_amplitudes-0",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 2,
+      "seconds": 15.286122899968177
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_real_amplitudes-1",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 3,
+      "seconds": 15.74462599994149
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_real_amplitudes-1",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 3,
+      "seconds": 19.421823099954054
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_real_amplitudes-2",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 10,
+      "seconds": 25.626747200032696
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_real_amplitudes-2",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 10,
+      "seconds": 43.18644089996815
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_real_amplitudes-3",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 6,
+      "seconds": 56.541454600170255
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_real_amplitudes-3",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 6,
+      "seconds": 53.92916010005865
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_ripple_adders-0",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 11,
+      "seconds": 105.11099869990721
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_ripple_adders-0",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 12,
+      "seconds": 85.53528969991021
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_ripple_adders-1",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 21,
+      "seconds": 150.13518590014428
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_ripple_adders-1",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 21,
+      "seconds": 80.92569209996145
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_ripple_adders-2",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 34,
+      "seconds": 85.27220819995273
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "case_id": "sdk-613117-sdk_ripple_adders-2",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 28,
+      "seconds": 64.4139559000032
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-448201-sdk_ripple_adders-7",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 17,
+      "seconds": 6.909924300038256
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-448201-sdk_ripple_adders-7",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 17,
+      "seconds": 4.680135100032203
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_pauli_evolution-0",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 4,
+      "seconds": 4.985971100162715
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_pauli_evolution-0",
+      "condition": "raw",
+      "verified_candidates": 0,
+      "effective_cx": 4,
+      "seconds": 1.798918099841103
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_pauli_evolution-1",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 5,
+      "seconds": 6.671159000019543
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_pauli_evolution-1",
+      "condition": "raw",
+      "verified_candidates": 0,
+      "effective_cx": 6,
+      "seconds": 2.70740489999298
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_pauli_evolution-2",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 5,
+      "seconds": 8.86595139990095
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_pauli_evolution-2",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 8,
+      "seconds": 3.5120522000361234
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_pauli_evolution-3",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 6,
+      "seconds": 9.559340100036934
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_pauli_evolution-3",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 8,
+      "seconds": 7.763224299997091
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_real_amplitudes-0",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 2,
+      "seconds": 6.295712799998
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_real_amplitudes-0",
+      "condition": "raw",
+      "verified_candidates": 1,
+      "effective_cx": 2,
+      "seconds": 4.475991700077429
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_real_amplitudes-1",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 3,
+      "seconds": 7.314858000143431
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_real_amplitudes-1",
+      "condition": "raw",
+      "verified_candidates": 0,
+      "effective_cx": 3,
+      "seconds": 7.5464489998994395
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_real_amplitudes-2",
+      "condition": "qiskit3",
+      "verified_candidates": 1,
+      "effective_cx": 10,
+      "seconds": 16.960952199995518
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_real_amplitudes-2",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 10,
+      "seconds": 16.262762499856763
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_real_amplitudes-3",
+      "condition": "qiskit3",
+      "verified_candidates": 0,
+      "effective_cx": 6,
+      "seconds": 8.424864800064825
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_real_amplitudes-3",
+      "condition": "raw",
+      "verified_candidates": 0,
+      "effective_cx": 6,
+      "seconds": 1.4736043999437243
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_ripple_adders-0",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 32,
+      "seconds": 12.523489099810831
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_ripple_adders-0",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 32,
+      "seconds": 12.36714739992749
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_ripple_adders-1",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 21,
+      "seconds": 10.457790599903092
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_ripple_adders-1",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 29,
+      "seconds": 11.82884880003985
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_ripple_adders-2",
+      "condition": "qiskit3",
+      "verified_candidates": 2,
+      "effective_cx": 48,
+      "seconds": 19.83269980014302
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "case_id": "sdk-613117-sdk_ripple_adders-2",
+      "condition": "raw",
+      "verified_candidates": 2,
+      "effective_cx": 48,
+      "seconds": 19.01425849995576
+    }
+  ]
+}

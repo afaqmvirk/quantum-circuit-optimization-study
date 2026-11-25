@@ -1,0 +1,181 @@
+{
+  "replayed_attempts": 96,
+  "attempt_counts": [
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "qiskit3",
+      "status": "verified",
+      "count": 24
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "raw",
+      "status": "verified",
+      "count": 24
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "condition": "qiskit3",
+      "status": "verified",
+      "count": 21
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "condition": "qiskit3",
+      "status": "invalid_output",
+      "count": 1
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "condition": "qiskit3",
+      "status": "unitary_mismatch",
+      "count": 2
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "condition": "raw",
+      "status": "verified",
+      "count": 15
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "condition": "raw",
+      "status": "unitary_mismatch",
+      "count": 8
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "condition": "raw",
+      "status": "invalid_output",
+      "count": 1
+    }
+  ],
+  "verified_improvements": [
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "qiskit3",
+      "circuit": "adder_ripple_c04(1, kind='full'), wires=[1, 2, 3, 0]",
+      "case_id": "sdk-448201-sdk_ripple_adders-7",
+      "input_cx": 17,
+      "output_cx": 11,
+      "tket_after_qiskit_cx": 16
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "qiskit3",
+      "circuit": "adder_ripple_c04(2, kind='fixed'), wires=[2, 1, 3, 4, 0]",
+      "case_id": "sdk-613117-sdk_ripple_adders-0",
+      "input_cx": 32,
+      "output_cx": 11,
+      "tket_after_qiskit_cx": 30
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "qiskit3",
+      "circuit": "adder_ripple_c04(3, kind='fixed'), wires=[0, 2, 4, 5, 3, 1, 6]",
+      "case_id": "sdk-613117-sdk_ripple_adders-2",
+      "input_cx": 48,
+      "output_cx": 34,
+      "tket_after_qiskit_cx": 45
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "raw",
+      "circuit": "adder_ripple_c04(1, kind='full'), wires=[1, 2, 3, 0]",
+      "case_id": "sdk-448201-sdk_ripple_adders-7",
+      "input_cx": 17,
+      "output_cx": 10,
+      "tket_after_qiskit_cx": 16
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "raw",
+      "circuit": "PauliEvolutionGate product, 4-site ZZ chain with X fields",
+      "case_id": "sdk-613117-sdk_pauli_evolution-1",
+      "input_cx": 6,
+      "output_cx": 5,
+      "tket_after_qiskit_cx": 5
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "raw",
+      "circuit": "PauliEvolutionGate product, 5-site ZZ chain with X fields",
+      "case_id": "sdk-613117-sdk_pauli_evolution-2",
+      "input_cx": 8,
+      "output_cx": 5,
+      "tket_after_qiskit_cx": 5
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "raw",
+      "circuit": "PauliEvolutionGate product, 3-site XX+YY chain with Z fields",
+      "case_id": "sdk-613117-sdk_pauli_evolution-3",
+      "input_cx": 8,
+      "output_cx": 6,
+      "tket_after_qiskit_cx": 6
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "raw",
+      "circuit": "adder_ripple_c04(2, kind='fixed'), wires=[2, 1, 3, 4, 0]",
+      "case_id": "sdk-613117-sdk_ripple_adders-0",
+      "input_cx": 32,
+      "output_cx": 12,
+      "tket_after_qiskit_cx": 30
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "raw",
+      "circuit": "adder_ripple_v95(2, kind='half'), wires=[0, 3, 1, 5, 4, 2]",
+      "case_id": "sdk-613117-sdk_ripple_adders-1",
+      "input_cx": 29,
+      "output_cx": 21,
+      "tket_after_qiskit_cx": 21
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "raw",
+      "circuit": "adder_ripple_c04(3, kind='fixed'), wires=[0, 2, 4, 5, 3, 1, 6]",
+      "case_id": "sdk-613117-sdk_ripple_adders-2",
+      "input_cx": 48,
+      "output_cx": 28,
+      "tket_after_qiskit_cx": 45
+    }
+  ],
+  "same_start_comparison": [
+    {
+      "model": "gpt-5.6-sol",
+      "outcome": "win",
+      "count": 3
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "outcome": "tie",
+      "count": 9
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "outcome": "loss",
+      "count": 3
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "outcome": "tie",
+      "count": 9
+    }
+  ],
+  "exploratory_gpt_before_qiskit": {
+    "sdk-448201-sdk_ripple_adders-7": 10,
+    "sdk-613117-sdk_pauli_evolution-0": 4,
+    "sdk-613117-sdk_pauli_evolution-1": 5,
+    "sdk-613117-sdk_pauli_evolution-2": 5,
+    "sdk-613117-sdk_pauli_evolution-3": 6,
+    "sdk-613117-sdk_real_amplitudes-0": 2,
+    "sdk-613117-sdk_real_amplitudes-1": 3,
+    "sdk-613117-sdk_real_amplitudes-2": 10,
+    "sdk-613117-sdk_real_amplitudes-3": 6,
+    "sdk-613117-sdk_ripple_adders-0": 12,
+    "sdk-613117-sdk_ripple_adders-1": 21,
+    "sdk-613117-sdk_ripple_adders-2": 28
+  }
+}

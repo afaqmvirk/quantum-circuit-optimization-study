@@ -1,0 +1,83 @@
+{
+  "model": "qwen3-coder:30b",
+  "case_id": "sdk-613117-sdk_pauli_evolution-2",
+  "condition": "raw",
+  "attempts": [
+    {
+      "request": [
+        {
+          "role": "system",
+          "content": "Optimize the supplied quantum circuit, minimizing CX count while preserving the full\noperation up to global phase on all input states. Keep the same qubit count and output order.\nNo extra wires, reset, or measurement. You may return the input if you cannot improve it.\nReturn only a JSON array of gates in execution order. Gate forms:\n[\"cx\", control, target], [\"h\", q] (also x, y, z, s, sdg, t, tdg),\n[\"rx\", q, angle] (also ry, rz, p), or [\"u\", q, theta, phi, lambda].\nAll angles are multiples of pi, e.g. [\"rz\", 0, 0.25] means RZ(pi/4).\nWhen copying a parameterized gate, retain its supplied precision.\nThe final array is evaluated independently. Use the input and feedback provided here."
+        },
+        {
+          "role": "user",
+          "content": "Qubits: 5. Input CX count: 8.\nInput gates:\n[[\"cx\",0,1],[\"sdg\",1],[\"cx\",0,1],[\"h\",0],[\"s\",0],[\"h\",0],[\"cx\",1,2],[\"sdg\",2],[\"cx\",1,2],[\"h\",1],[\"tdg\",1],[\"h\",1],[\"cx\",2,3],[\"sdg\",3],[\"cx\",2,3],[\"h\",2],[\"sdg\",2],[\"h\",2],[\"cx\",3,4],[\"tdg\",4],[\"cx\",3,4],[\"h\",3],[\"tdg\",3],[\"h\",3],[\"h\",4],[\"sdg\",4],[\"h\",4]]\nReturn your first gate array."
+        }
+      ],
+      "reply": {
+        "model": "qwen3-coder:30b",
+        "created_at": "2026-11-24T05:13:48.6981888Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1776644500,
+        "load_duration": 3120000,
+        "prompt_eval_count": 377,
+        "prompt_eval_cached_count": 194,
+        "prompt_eval_duration": 108750000,
+        "eval_count": 165,
+        "eval_duration": 1647848000,
+        "content": "```json\n[[\"cx\",0,1],[\"sdg\",1],[\"cx\",0,1],[\"h\",0],[\"s\",0],[\"h\",0],[\"cx\",1,2],[\"sdg\",2],[\"cx\",1,2],[\"h\",1],[\"tdg\",1],[\"h\",1],[\"cx\",2,3],[\"sdg\",3],[\"cx\",2,3],[\"h\",2],[\"sdg\",2],[\"h\",2],[\"cx\",3,4],[\"tdg\",4],[\"cx\",3,4],[\"h\",3],[\"tdg\",3],[\"h\",3],[\"h\",4],[\"sdg\",4],[\"h\",4]]\n```"
+      },
+      "model_seconds": 1.7777088000439107,
+      "status": "verified",
+      "cx": 8,
+      "one_qubit": 19,
+      "total": 27,
+      "depth": 15,
+      "residual": 6.77599954797753e-16,
+      "verification_seconds": 0.0022139999782666564
+    },
+    {
+      "request": [
+        {
+          "role": "system",
+          "content": "Optimize the supplied quantum circuit, minimizing CX count while preserving the full\noperation up to global phase on all input states. Keep the same qubit count and output order.\nNo extra wires, reset, or measurement. You may return the input if you cannot improve it.\nReturn only a JSON array of gates in execution order. Gate forms:\n[\"cx\", control, target], [\"h\", q] (also x, y, z, s, sdg, t, tdg),\n[\"rx\", q, angle] (also ry, rz, p), or [\"u\", q, theta, phi, lambda].\nAll angles are multiples of pi, e.g. [\"rz\", 0, 0.25] means RZ(pi/4).\nWhen copying a parameterized gate, retain its supplied precision.\nThe final array is evaluated independently. Use the input and feedback provided here."
+        },
+        {
+          "role": "user",
+          "content": "Qubits: 5. Input CX count: 8.\nInput gates:\n[[\"cx\",0,1],[\"sdg\",1],[\"cx\",0,1],[\"h\",0],[\"s\",0],[\"h\",0],[\"cx\",1,2],[\"sdg\",2],[\"cx\",1,2],[\"h\",1],[\"tdg\",1],[\"h\",1],[\"cx\",2,3],[\"sdg\",3],[\"cx\",2,3],[\"h\",2],[\"sdg\",2],[\"h\",2],[\"cx\",3,4],[\"tdg\",4],[\"cx\",3,4],[\"h\",3],[\"tdg\",3],[\"h\",3],[\"h\",4],[\"sdg\",4],[\"h\",4]]\nReturn your first gate array."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n[[\"cx\",0,1],[\"sdg\",1],[\"cx\",0,1],[\"h\",0],[\"s\",0],[\"h\",0],[\"cx\",1,2],[\"sdg\",2],[\"cx\",1,2],[\"h\",1],[\"tdg\",1],[\"h\",1],[\"cx\",2,3],[\"sdg\",3],[\"cx\",2,3],[\"h\",2],[\"sdg\",2],[\"h\",2],[\"cx\",3,4],[\"tdg\",4],[\"cx\",3,4],[\"h\",3],[\"tdg\",3],[\"h\",3],[\"h\",4],[\"sdg\",4],[\"h\",4]]\n```"
+        },
+        {
+          "role": "user",
+          "content": "Verifier status: verified. Candidate CX count: 8. Return your final gate array."
+        }
+      ],
+      "reply": {
+        "model": "qwen3-coder:30b",
+        "created_at": "2026-11-24T05:13:50.4369613Z",
+        "done": true,
+        "done_reason": "stop",
+        "total_duration": 1727432600,
+        "load_duration": 3560200,
+        "prompt_eval_count": 569,
+        "prompt_eval_cached_count": 541,
+        "prompt_eval_duration": 75777000,
+        "eval_count": 165,
+        "eval_duration": 1645340000,
+        "content": "```json\n[[\"cx\",0,1],[\"sdg\",1],[\"cx\",0,1],[\"h\",0],[\"s\",0],[\"h\",0],[\"cx\",1,2],[\"sdg\",2],[\"cx\",1,2],[\"h\",1],[\"tdg\",1],[\"h\",1],[\"cx\",2,3],[\"sdg\",3],[\"cx\",2,3],[\"h\",2],[\"sdg\",2],[\"h\",2],[\"cx\",3,4],[\"tdg\",4],[\"cx\",3,4],[\"h\",3],[\"tdg\",3],[\"h\",3],[\"h\",4],[\"sdg\",4],[\"h\",4]]\n```"
+      },
+      "model_seconds": 1.7291545999469236,
+      "status": "verified",
+      "cx": 8,
+      "one_qubit": 19,
+      "total": 27,
+      "depth": 15,
+      "residual": 6.77599954797753e-16,
+      "verification_seconds": 0.002974800067022443
+    }
+  ]
+}
