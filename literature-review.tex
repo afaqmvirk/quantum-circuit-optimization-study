@@ -5,145 +5,178 @@
 \thesisheader{Large Language Models as a Second Pass\texorpdfstring{\\}{ }%
   for Quantum Circuit Optimization}{Honours Thesis Literature Review}
 
-\section{Circuit Optimization After Compilation}
+\Needspace{5\baselineskip}
+\section{1. Introduction: Setting the Bar for a Second Optimization Pass}
 
-A quantum circuit is a list of gates (operations on quantum bits, or qubits). Optimization finds a
-less costly way to carry out the same operation. Two-qubit gates are a useful place to look for
-savings because they are typically a major source of errors on quantum devices. For a given gate set
-(the operations a circuit is allowed to use), two circuits can carry out the same operation with
-different numbers of two-qubit gates. A compiler searches for the less expensive
-implementation~\cite{ibm-opt}.
+Compiling quantum circuits for superconducting hardware benefits from reducing operations that are slow
+and prone to noise. Controlled-NOT (CX) gates—which flip a target qubit conditioned on a control
+qubit—can be costly to implement, since two-qubit gates on superconducting processors typically have
+higher error rates and longer execution times than single-qubit operations~\cite{quiroz-hardware}.
+Counting CX gates within a standardized gate set therefore provides a
+consistent, hardware-relevant measure of circuit cost~\cite{tket}. While general-purpose compilers like
+Qiskit reduce these costs during standard compilation, they do not guarantee an optimal circuit. This
+gap has motivated recent interest in using large language models (LLMs) as a second-pass optimizer.
+However, showing that an LLM can strip a few extra gates from a Qiskit-compiled circuit only
+demonstrates that Qiskit left room for improvement. To determine whether a language model genuinely adds
+value to a compilation pipeline, it must be measured against what specialized, conventional second-pass
+optimizers can already achieve on the same circuits.
 
-Qiskit (IBM's quantum software toolkit) can cancel redundant gates and use block resynthesis
-(replacing groups of gates with equivalent implementations). Level 3 is its highest built-in
-optimization setting. The result depends partly on which gates the compiler examines together. Two
-identical controlled-NOT gates (CX gates, which flip one qubit when another is 1) cancel if the
-compiler can bring them together. More involved reductions can require coordinating changes across a
-larger part of the circuit. Minimizing CX count is NP-hard (a fast method guaranteed to find the
-minimum would resolve a major open problem in computer science) even for circuits written in
-Clifford+T (a standard fixed set of one- and two-qubit gates). Very small cases have useful exact
-answers. For any operation on two qubits, with arbitrary one-qubit gates available, the minimum is
-zero, one, two, or three CX gates and can be determined from the operation's
-matrix~\cite{ibm-stages,wetering-amy,shende}.
+Qiskit’s level-3 optimization pass relies on local gate cancellations and the resynthesis of small gate
+blocks~\cite{qiskit-code}. Two identical CX gates on the same qubit pair cancel immediately when
+adjacent, for example, but a local pass can easily miss that cancellation when intervening gates
+separate them. More difficult optimizations, such as those targeted by Quartz, require temporarily
+adding gates so that a later rewrite can eliminate a larger block~\cite{quartz}. QUESO addresses these
+limitations by exploring multiple promising rewrite paths simultaneously and matching patterns across
+intervening gates~\cite{queso}. Together, these methods show why a second pass is worthwhile—and why
+simply outperforming Qiskit is too low a bar for an LLM.
 
-Specialized optimizers can improve a circuit after a first compiler pass (one round of circuit
-optimization). Quartz finds equivalent gate sequences and uses them as rewrite rules (ways of
-replacing gates while preserving the operation). QUESO (a circuit optimizer that searches through such
-rules) uses symbolic rules (patterns that cover many gate sequences) and beam search (keeping a
-limited set of promising circuits at each step). The team behind quspect (another quantum compiler)
-compared QUESO, GUOQ (an optimizer that combines rewrites with resynthesis), and Quartz on the same
-circuits after Qiskit level 3 and routing (arranging qubit movements so gates can use a device's
-connections). It reported further reductions in two-qubit gate counts, including about 7\% for QUESO
-and 12\% for GUOQ on its evaluated circuit and device pairs. Two-qubit depth (the number of sequential
-layers of two-qubit gates) increased in aggregate. That result establishes a useful comparison for a
-large language model (LLM). An extra conventional search can already save gates on the compiled input,
-and the accompanying change in depth can matter~\cite{quartz,queso,quspect}.
+The quspect study makes this point empirically. When its authors applied conventional optimizers to
+circuits that Qiskit had already optimized and routed for device connectivity, they achieved further
+two-qubit gate reductions of roughly 7\% with QUESO (measured as the geometric mean of final-to-starting
+gate count ratios) and 12\% with GUOQ, an optimizer that combines gate rewrites with small-block
+resynthesis~\cite{quspect}. Matching their QUESO results back to the starting circuits reveals
+improvements in 122 of 275 circuit-device pairs and ties in the remaining 153, spanning 55 circuits
+across five connectivity topologies~\cite{quspect}. An LLM could therefore beat Qiskit across a wide
+range of benchmarks and still offer no additional CX savings over QUESO. Notably, the authors also
+observed an aggregate increase in two-qubit depth—the number of sequential layers of two-qubit
+gates—meaning any evaluation concerned with execution time must track depth alongside gate
+count~\cite{quspect}.
 
-\section{What Language Models Have Shown}
+One way to find further savings is to learn which rewrite to try next. Quarl trains an agent to choose
+where to apply an equivalent gate replacement~\cite{quarl}. Riu et al. train a similar agent on small
+circuits represented as diagrams, then show that its choices can reduce two-qubit gate counts on
+larger, structured circuits~\cite{riu}. Tao et al. make the division of labour particularly clear:
+after each move by the agent, a conventional routine commutes and cancels gates that admit
+straightforward simplifications~\cite{tao}. Their comparison asks how much conventional cleanup helps a
+learned optimizer. Ours asks the complementary question: once a compiler has done that work, how often
+can a language model find a saving that another conventional pass misses?
 
-Gu et al. gave Claude Mythos 5 a task specification and asked it to write a program that builds a
-quantum circuit. The model could choose the algorithm and change how much temporary workspace it used.
-An independent evaluator checked successive candidates and scored them by the product of their Toffoli
-count (the number of gates that flip a target when both controls are 1) and peak qubit count (the most
-qubits needed at once). The study shows that a language model can reorganize a quantum computation
-when it can express and revise the algorithm directly. An existing compiled circuit provides a more
-limited view of the computation. Its gate list can retain recognizable structure, such as repeated
-carry steps (passing overflow between digits) in an adder (a circuit that adds numbers stored in
-qubits). Jang et al. give a related reason to examine that structure. Their model used written design
-guidance to produce circuits for specified functions, and the authors checked those circuits against
-known input and output examples~\cite{gu,jang}.
+\Needspace{5\baselineskip}
+\section{2. From High-Level Synthesis to Gate-Level Equivalence}
 
-StabilizerBench (a benchmark for quantum error-correction circuits) is the closest precedent for
-rewriting a supplied circuit. In its optimization task, a model receives a circuit that prepares a
-quantum state from zero and the stabilizers (operations that leave the required state unchanged) that
-it must preserve. On 192 cases, Claude and GPT succeeded on about 73\% and 72\% of the circuits with
-up to 15 verification calls and 900 seconds per case. Both succeeded substantially less often with the
-same number of calls and a 300-second limit. A comparison with a conventional optimizer should hold
-the time allowance fixed and record when a verified improvement becomes
-available~\cite{stabilizerbench}.
+Once the conventional baseline is established, the next question is what kind of optimization problem
+the language model is actually being asked to solve. Recent studies show that LLMs can discover
+impressive quantum circuits, but the framing of the task varies significantly across the literature. Gu
+et al., for instance, gave Claude a high-level description of a computation alongside a blank program.
+On an arithmetic task, Claude reduced the Toffoli count (the number of doubly controlled bit flips) by
+conditionally routing data so that two branches could share a single multiplication~\cite{gu}. While
+this demonstrates that an LLM can uncover algorithmic restructurings that local gate rewrites are
+unlikely to find, it also highlights why such results are difficult to transfer to a compiler. A task
+description tells the model what a multiplication is; a compiled gate list forces the model to infer the
+underlying computation from raw gates, if it can at all. Jang et al. similarly supplied structured
+design guidance and validated the resulting circuits against known input-output examples~\cite{jang}. A
+central question for our work is how much of that capability survives when the model receives the gate
+list without a description of its purpose.
 
-The required behaviour also depends on the circuit's purpose. A circuit that prepares a state has one
-prescribed input. A subroutine (a circuit called within a larger computation) may receive any input,
-including a superposition (a combination of quantum states). A CX gate and an empty circuit agree on
-the all-zero input. With the control qubit set to 1, only the CX gate flips the target. Checking the
-full unitary (the matrix that describes the operation on every input) distinguishes the two. Comparing
-these matrices up to global phase (one common complex multiplier of magnitude one) is the appropriate
-check for replacing a standalone arithmetic or simulation block.
+The information a model receives also matters for approaches that work directly on circuits. Kremer et
+al. use reinforcement learning to synthesize replacements for blocks of a known type, including
+circuits that implement linear functions and permutations~\cite{kremer}. Hofstetter et al. go a step
+further and train a generative model to produce the replacement gate sequence itself. On held-out
+eight-qubit circuits, their model outperformed nine baseline optimizers. The authors constructed those
+inputs by starting with a cheaper circuit and applying rewrite rules in reverse~\cite{bops}. This gives
+them a particularly clean test of whether a model can recover a saving. A circuit that has already
+passed through Qiskit presents a different test: we do not know in advance whether a cheaper
+implementation exists.
 
-Saeedi et al. trained a model on circuits optimized by PyZX (a compiler that represents circuits as
-diagrams and simplifies the diagrams). Among outputs that met their process-fidelity threshold (a
-required degree of agreement between the old and new operations), the model matched PyZX's counts of T
-gates (costly operations in error-corrected quantum computing). Correct outputs became much less
-frequent as the gate lists grew. Petchartee's abstract reports reductions in gate count and depth for
-QC-GPT (a model trained on quantum circuits from several software toolkits). The results motivate
-tracking how often a model returns a valid circuit and how often that circuit improves on a
-conventional result for the same input~\cite{drift,qcgpt}.
+StabilizerBench asks a general-purpose language model to rewrite a supplied circuit. Its optimization benchmark provides an
+existing circuit along with the conditions its output state must satisfy, counting a rewrite as an
+improvement if it preserves those conditions while reducing either entangling gate count or depth at the
+same gate count. Given up to 15 verification calls and 900 seconds per instance, Claude and GPT
+succeeded on 72.9\% and 71.9\% of its 192 cases, respectively~\cite{stabilizerbench}. Justifying a new
+benchmark, however, requires more than testing newer models; the critical distinction lies in what the
+circuit must preserve once it is replaced.
 
-Crichigno and Flammia validate their checking procedure on solved cases and deliberately incorrect
-candidates before evaluating their agents. That step is particularly useful in a gate-count
-experiment. Deleting gates can lower the cost of a circuit while changing the operation it
-performs~\cite{crichigno}.
+For state preparation, verifying the output produced from the all-zero state is sufficient. A subroutine
+embedded inside a larger computation, by contrast, can receive arbitrary inputs. Deleting a CX gate has
+no effect when both qubits start at zero, for example, but it changes the output when the control starts
+at one and the target at zero. A rewrite can also alter the relative phase of a superposition—the phase
+difference between its components—while still producing the expected measurement outcomes on individual
+basis inputs~\cite{burgholzer-wille}. To reflect the requirements of a general-purpose compiler, we must
+therefore verify that every rewrite preserves the circuit’s unitary action across all inputs. We allow a
+global phase shared across all components, but we record it explicitly because it can become observable
+if another qubit controls the subroutine~\cite{araujo}.
 
-\section{The Comparison This Study Makes}
+\Needspace{5\baselineskip}
+\section{3. Measuring Optimization Savings Rigorously}
 
-Other benchmarks already compare multiple models on quantum compilation tasks. QuOptBench (a benchmark
-for choosing a device and compiler settings) compares model choices with a search over the available
-options. Qubrio (a compiler that schedules gates and qubit movements) compares estimates of execution
-time and fidelity (how accurately the computation runs). Together with StabilizerBench, these studies
-show that the contribution of a new benchmark comes from the decision it tests. Here that decision is
-whether to give a circuit that has already passed through Qiskit to a model or to another conventional
-optimizer. Both methods receive the same gate list, optimization objective, and time
-allowance~\cite{quoptbench,qubrio}.
+Strict equivalence checking ensures that a rewrite is valid, but it does not by itself guarantee a fair
+evaluation. Even with a sound verifier, how optimization gains are aggregated and reported can easily
+obscure a model’s practical reliability. Saeedi et al. expose this issue when evaluating a model trained
+on circuits from PyZX, a conventional optimizer. Among outputs that passed their numerical check, the
+model matched PyZX’s T-gate count—a critical cost metric in fault-tolerant computation—in every case.
+However, the rate of valid outputs declined on longer gate sequences~\cite{drift}. Because a compiler
+user must submit a circuit without knowing in advance whether the model will succeed, reporting savings
+only on valid outputs paints a misleading picture. We therefore assign zero savings to failed or
+inconclusive rewrites, retain the starting circuit, and report the failure explicitly. Following
+Crichigno and Flammia, who test their verifier against both known solutions and deliberately incorrect
+candidates~\cite{crichigno}, we adopt the same validation checks; a verifier that overlooks a missing
+gate would reward the exact failure mode we need to catch.
 
-\researchquestion{Can frontier LLMs improve already optimized quantum circuits?}
+Two benchmarks show how to make the comparison fair. QuOptBench evaluates a model’s choice of device and compiler
+settings against an exhaustive search over 960 configurations per circuit~\cite{quoptbench}, while
+Qubrio compares model-guided qubit placement and routing against conventional search under an identical
+budget of simulator evaluations~\cite{qubrio}. We borrow this principle of comparing methods under
+explicitly stated constraints. Macarone-Palmieri and Lo Franco show why that detail matters for
+language models: their model revises circuits in response to a score measuring how much entanglement
+they produce~\cite{testtime}. In our setting, feedback serves a narrower purpose. A model may revise
+its gate list, but it must still preserve the original operation. Exhaustive search over equivalent
+gate sequences is intractable here—even
+minimizing CX count for Clifford+T circuits (a standard set of one- and two-qubit gates) is
+computationally hard~\cite{wetering-amy}. Outperforming a strong conventional optimizer under fixed
+budgets is therefore a meaningful, testable claim.
 
-There are two parts to the comparison. First, an extra conventional search establishes how many CX
-gates the model would have to save to offer an advantage on the compiled input. Second, giving the
-model both the original and optimized versions of the same operation shows whether its performance
-changes after compilation. The two starting points should use the same gate notation. The paired
-comparison should use the final CX count in each condition, since a longer starting circuit has more
-gates available to remove. Correctness and elapsed time should be reported alongside gate savings,
-with failed submissions counted even when the original circuit is retained.
+\Needspace{5\baselineskip}
+\section{4. Proposed Experimental Comparison}
 
-The arithmetic cases are particularly informative if the model can recognize carry operations after
-they have been expanded into smaller gates. Different adder designs help distinguish a recurring
-result from one rewrite that happens to work on several widths of the same adder. Simulation and
-variational circuits (templates with adjustable gates used in quantum algorithms) supply other forms
-of repeated structure. An isolated improvement would justify looking closely at that construction.
-Frequent ties with the conventional method would show how much of the apparent post-Qiskit saving is
-already available from another optimizer. Comparing the outputs and their arrival times makes either
-outcome interpretable.
+Drawing on these lessons—strict unitary equivalence, failure-inclusive accounting, and strong
+conventional baselines—we propose a direct test of a central question: can LLMs improve already
+optimized quantum circuits?
 
-\section{Extensions}
+We will evaluate each method on two versions of every circuit: one translated into a common gate set,
+and one further optimized by Qiskit level 3. On the level-3 circuits, the better verified result between
+tket (a conventional compiler) and QUESO will establish the baseline a model must beat. We will run tket
+once and allocate QUESO 180 seconds of search per circuit, while permitting each LLM to submit an
+initial rewrite and one revision based on verification feedback. Elapsed runtime will be recorded
+separately. These boundaries define the scope of our comparison: a win reflects what a language model
+can uncover beyond these two conventional tools at these specific settings.
 
-The most immediate improvement would be to compare any consistent model savings with a broader set of
-compiler methods. tket (a general-purpose quantum compiler) can quickly simplify groups of gates. A
-timed QUESO search gives a second reference. GUOQ or quspect would add further search strategies.
-Cases with known CX minima are also useful controls. If an exact minimum is available, a tie can be
-interpreted against that minimum. On the main workload, a tie is evidence about the methods and time
-tested~\cite{tket,quspect,shende,shaik-vandepol}.
+We will report both win frequency and CX gate savings. Comparing final counts across both starting
+points is essential, since the starting versions can differ in how many gates they leave available to
+remove. We will also test whether wins recur across independent runs. Our benchmark suite will span
+arithmetic, simulation, and variational circuits (circuits with adjustable, parameterized gates). If a
+model repeatedly wins across different bit-widths of a single adder, that rewrite warrants closer study;
+if the same advantage carries over to a different adder architecture, we have stronger grounds to
+attribute it to arithmetic structure. Conversely, if a model routinely improves on Qiskit only to tie
+the conventional second pass, then compilers can already capture those savings without incurring the
+cost of an LLM call.
 
-\begin{itemize}
-  \item \textbf{Ask for edits to the input circuit.} Have the model identify gates to replace and let
-  the test program copy the rest. Comparing edits with complete gate lists on the same cases would
-  help determine whether failures arise from having to reproduce long stretches of unchanged
-  gates~\cite{drift}.
-  \item \textbf{Test whether knowing the circuit's purpose helps.} Give the model a short description,
-  such as the kind of addition the circuit performs. Compare this with a conventional synthesis method
-  that can use the same description. This separates the value of identifying the operation from the
-  value of optimizing its gate list~\cite{gu}.
-  \item \textbf{Ask the model to write a reusable compiler pass.} The model would supply a rule or a
-  search procedure once, and the study would test it on independent circuit families. QuantumEvo (a
-  system that designs algorithms for building quantum circuits) uses this approach to design a
-  reusable heuristic (a practical decision rule) for building circuits whose operations can be undone.
-  Reuse matters if an effective per-circuit rewrite costs too much to repeat at compilation
-  time~\cite{quantumevo}.
-  \item \textbf{Measure savings after device mapping.} Apply the same routing and native gate set (the
-  gates available on the device) to the original and rewritten circuits. This would establish whether
-  the logical gate savings survive hardware constraints and provide a basis for measuring execution
-  time or success on a device~\cite{qubrio}.
-\end{itemize}
+\Needspace{5\baselineskip}
+\section{5. Strengthening the Evaluation and Future Directions}
 
+While this experimental design tests whether LLMs can outperform conventional optimizers under fixed
+budgets, several follow-up analyses would sharpen the conclusions. A tie between an LLM and a
+conventional tool, for instance, has two possible explanations: both methods reached the true minimum,
+or both missed a better circuit. Known CX minima for small two-qubit operations~\cite{shende} and exact
+synthesis methods for certain larger Clifford circuits~\cite{shaik-vandepol} allow us to distinguish
+between those two cases. On remaining circuits, giving an additional optimizer such as GUOQ~\cite{guoq-paper} the same
+starting circuits on which the LLM won would test how much our findings depend on our choice of baseline
+tools.
+
+For larger circuits, our benchmark asks models to edit numbered sections so they do not have to
+regenerate every unchanged gate. If model performance shifts on these instances, circuit size and output
+format will be confounded; evaluating both formats on the same circuits would isolate the effect of the
+output format at a fixed circuit size. A second follow-up could supply the circuit’s high-level purpose
+to both the LLM and a conventional synthesis tool, directly testing how much access to a task
+description helps in the gate-rewriting setting, given the algorithmic gains Gu et al.
+observed~\cite{gu}.
+
+Finally, any rewrite pattern that recurs reliably may be worth distilling into a reusable compiler pass.
+QuantumEvo provides a clear precedent: a model generates a rule for selecting variable orderings, which
+is then evaluated on unseen synthesis problems~\cite{quantumevo}. A rule that generalizes to new circuit
+families would let compilers capture a model’s insight without calling it for every circuit. Before
+claiming a hardware-level benefit, however, both circuit versions must be routed onto the same target
+device and re-evaluated for gate count and depth, as the extra gates required to connect distant qubits
+can easily reverse which version is cheaper to run~\cite{qubrio}.
 
 \thesisreferences
 \end{document}

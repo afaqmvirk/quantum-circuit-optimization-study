@@ -7,48 +7,37 @@
 
 \section{Introduction}
 
-Quantum compilers simplify redundant operations before a circuit runs on hardware, particularly
-two-qubit controlled-NOT gates (CX gates, which flip one qubit when another is 1). These gates are a
-major source of errors on current processors. Qiskit (IBM's quantum software toolkit) uses gate
-cancellation and block resynthesis (replacing groups of gates with equivalent implementations). Its
-highest built-in setting, level 3, can still leave reductions that another optimization pass can
-find~\cite{ibm-opt,ibm-stages,quspect}.
+Practical quantum programs rarely execute in the exact gate sequence written by an algorithm designer. Before a circuit runs on hardware, a compiler must decompose high-level operations into a native gate set and simplify redundant structure~\cite{zilk}. The controlled-NOT (CX) gate is common in theoretical circuit designs, and the native entangling gate depends on the processor~\cite{ashhab}. On the superconducting processors measured by Quiroz et al., two-qubit gates took longer and had higher error rates than single-qubit gates~\cite{quiroz-hardware}. Counting CX gates in a common gate set lets us compare two-qubit gate costs across rewrites~\cite{tket}.
 
-This thesis investigates whether frontier large language models (LLMs, the most capable available
-language models) can provide an effective second pass for quantum subroutines (circuits used within
-larger computations).
+Industrial toolkits such as IBM's Qiskit apply multi-stage transpilation pipelines to reduce this overhead, culminating in aggressive optimization passes that cancel adjacent inverses, commute operations across wires, and resynthesize small subcircuits~\cite{qiskit-code}. Even so, rule-based compilers rely on local peephole transformations and greedy heuristics that can overlook non-local algebraic simplifications~\cite{quartz}. Because quantum circuits admit many functionally identical realizations, a second compilation pass using a different optimization strategy can often extract further reductions from an already compiled circuit~\cite{quspect}.
 
-\researchquestion{Can frontier LLMs improve already optimized quantum circuits?}
+This thesis investigates whether frontier or open-weight large language models (e.g. Claude, GPT, Qwen) can provide an effective second pass for quantum subroutines (circuits used within
+larger computations). Succinctly:
 
-The study will compare verified CX savings against conventional optimizers given the same circuits
-and time allowance. It will examine which circuit structures benefit and whether starting before or
-after Qiskit level 3 affects the result.
+\researchquestion{Can LLMs improve already optimized quantum circuits?}
+
+The study will compare savings against conventional optimizers given the same circuits. It will examine which circuit structures benefit and whether starting before or after conventional optimization affects the result.
 
 \section{Motivation and Related Work}
 
-A strong comparison needs more than Qiskit level 3 alone. tket (a general-purpose quantum compiler)
-simplifies small groups of gates, while QUESO (an optimizer that searches through gate-replacement
-rules) explores alternative rewrites. Compiler comparisons show that both fast passes and longer
-searches can recover savings after initial compilation. Their results provide the reference that an
-LLM must improve upon~\cite{tket,queso,quspect}.
+Evaluating LLM-based optimization requires a stronger baseline than Qiskit optimizations alone. Cross-compiler studies show that conventional secondary passes often recover additional CX savings~\cite{quspect}. For instance, tket (a general-purpose quantum compiler)
+simplifies small groups of gates~\cite{tket}, while superoptimizers like QUESO (an optimizer that searches through gate-replacement
+rules) explores alternative non-local rewrites~\cite{queso}. Superoptimization can approach optimality on small blocks, yet its search space grows rapidly with circuit depth~\cite{amy-mitm}, creating a sharp trade-off between search time and gate reduction~\cite{quspect}. Their results provide the reference that an
+LLM must improve upon.
 
-Gu et al. showed that Claude can design compact circuits from task descriptions by changing the
-underlying algorithm. StabilizerBench (a benchmark for quantum error-correction circuits) tests
+\newpage
+Qubrio compared LLMs with simulated annealing (a conventional search method) for qubit placement and routing. With the same number of simulator evaluations, the LLMs found schedules that ran faster in simulation~\cite{qubrio}. That comparison leaves open whether LLMs can find shorter gate sequences that conventional optimizers miss. Gu et al. showed that Anthropic's Claude can design compact circuits from task descriptions by choosing favorable algorithms and qubit layouts~\cite{gu}, while StabilizerBench (a benchmark for quantum error-correction circuits) tests
 whether models can simplify an existing circuit while preserving a required state prepared from
-zero. The proposed study instead supplies a fixed circuit and checks its full unitary (the matrix
-describing its operation on every input). Arithmetic and simulation subroutines can receive
-superpositions (combinations of quantum states), where incorrect relative phases (phase differences
-between components) can change the computation. Full-operation checking supports substituting the
-rewrite in a larger circuit~\cite{gu,stabilizerbench,draper,burgholzer-wille}.
+zero~\cite{stabilizerbench}. Neither setting answers whether LLMs are useful inside a general-purpose compiler. Synthesizing from scratch changes the algorithm rather than optimizing a fixed low-level subroutine, and StabilizerBench restricts evaluation to Clifford gates on a single basis input~\cite{stabilizerbench}. Real subroutines—such as arithmetic adders~\cite{draper} or Trotterized Hamiltonian blocks~\cite{childs-trotter}—contain non-Clifford rotations and act on arbitrary superpositions. An incorrect basis state or relative phase (the phase difference between components of a superposition) can change the surrounding computation~\cite{burgholzer-wille}. A global phase (one phase shared by all components) can affect the result if another qubit controls whether the subroutine runs~\cite{araujo}.
 
 \Needspace{17\baselineskip}
 \section{Methodology}
 
 \subsection{Benchmark Families}
 
-Circuits will span three to eight qubits, allowing each candidate's complete matrix to be checked.
-The final instance count, parameter choices, and repeat cases will be set after development testing
-and recorded before evaluation.
+The main set will contain 100 circuits, mostly with 6--24 active qubits and selected cases with
+32--40 and 64--1,025 active qubits. We will fix the instances and
+their parameters before evaluation. Possible tasks include:
 
 \par\smallskip
 \begingroup\small
@@ -62,17 +51,17 @@ and recorded before evaluation.
   \midrule
   Quantum arithmetic &
     Cuccaro and Vedral--Barenco--Ekert ripple-carry adders (circuits that pass overflow between
-    digits), and Draper Fourier adders (circuits that add through phase rotations). Vary carry modes
+    digits)~\cite{cuccaro,vbe}, and Draper Fourier adders (circuits that add through phase rotations)~\cite{draper}. Vary carry modes
     and retain all ancillas (temporary working qubits). \\
   \addlinespace[2pt]
   Hamiltonian simulation &
     First-order Trotter steps (applying interactions in sequence to approximate a system's
-    evolution) for qubits coupled along a chain. Use $ZZ$ couplings with $X$ fields and $XX+YY+ZZ$
+    evolution) for qubits coupled along a chain~\cite{childs-trotter}. Use $ZZ$ couplings with $X$ fields and $XX+YY+ZZ$
     couplings with $Z$ fields, at several evolution times. \\
   \addlinespace[2pt]
   Variational circuits &
     Qiskit's RealAmplitudes templates (layers of adjustable rotations and CX gates), varying chain
-    or ring connections, layer count, and rotation angles. \\
+    or ring connections, layer count, and rotation angles~\cite{qiskit-code}. \\
   \bottomrule
 \end{tabularx}
 \par\endgroup\smallskip
@@ -80,60 +69,25 @@ and recorded before evaluation.
 In the simulation circuits, $X$, $Y$, and $Z$ are basic one-qubit operations. Couplings act between
 neighbours and fields act on individual qubits. Development cases from all three families will be
 used to finalize the prompt, gate format, and conversions between tools. The arithmetic
-constructions follow established designs~\cite{cuccaro,vbe,draper}.
+constructions follow established designs.
 
 \Needspace{8\baselineskip}
 \subsection{Experimental Protocol}
 
-Normalize each circuit with Qiskit level 0 into the same basis (allowed gates) of $u$ (an arbitrary
-one-qubit gate) and CX. Preserve the operation without approximate synthesis, allow any qubit pair
-to interact, and allow general initial states. Run level 3 on that circuit to obtain the optimized
-version. Both versions serve as paired starting points. Any tool that reorders wires must include
-and count the gates needed to restore their original order~\cite{ibm-api}.
+A model may find a simplification that a conventional compiler would also find. To test whether the model can reduce the circuit further, we will give each method two versions of the same circuit. Qiskit level 0 will translate the original into one-qubit gates and CX gates~\cite{qiskit-code}. Qiskit level 3 will optimize a copy~\cite{zilk}. Before each trial, we will verify that both versions preserve the original operation.
 
-Each method receives 180 seconds per starting circuit, including input conversion, search or model
-generation, provider wait, and verification.
+For each version, we will run tket once and disable wire relabelling~\cite{tket-peephole}. QUESO will search for equivalent gate sequences~\cite{queso} for up to 180 seconds. We will check every candidate it produces within that limit, even if the check finishes later. The lowest CX count we verify across the two optimizers will set the conventional baseline for that circuit.
 
-\begin{itemize}
-  \item \textbf{Conventional optimizers.} Give tket's FullPeepholeOptimise pass up to 10 seconds,
-  with implicit swaps (unrecorded wire relabelling) disabled. Run QUESO from the same starting
-  circuit for the remaining time, using GUOQ (the software providing QUESO's search) and the Nam
-  basis (CX, H, X, and rotations about Z). QUESO uses beam search (retaining a limited set of
-  promising circuits at each step). Keep every verified improvement available by the
-  deadline~\cite{tket-adapter,guoq-code}.
-  \item \textbf{Frontier LLMs.} Select GPT-5.6-Sol and comparable frontier reasoning models before
-  evaluation. Give each a fresh session with tools disabled and a JSON gate list (structured text),
-  qubit count, and starting CX count. Omit circuit names and compilation stage. Allow up to two
-  submissions within the time limit. After the first, return syntax errors, verification status, and
-  any verified CX count for one revision.
-\end{itemize}
+We will give GPT-6.1-Sol, Claude Opus 5.5, and Gemini 4 Neon the gate sequence, qubit count, and starting CX count. Each model will start a fresh session without tools. We will withhold the circuit name and compilation stage. For the main set, each model will return a complete circuit. For larger circuits, each method may replace up to eight nonoverlapping sections. After the first submission, we will report any formatting errors, whether the circuit passed verification, and its CX count if it passed. The model may then revise its answer once. We will run each model twice independently at each starting point and use a fixed random seed to shuffle the trial order.
 
-Run trials one at a time in a reproducibly shuffled order. Repeat a subset covering each circuit
-family and both starting points to assess consistency. Record model versions, prompts, sampling
-settings, software, hardware, and circuit choices before evaluation.
-
-\Needspace{10\baselineskip}
+\Needspace{6\baselineskip}
 \subsection{Verification and Analysis}
 
-Map every candidate back to $u$ and CX in the original wire order. For reference matrix $U$ and
-candidate $V$, compute $s=\operatorname{Tr}(V^\dagger U)$ (their matrix overlap). Set
-$\lambda=s/|s|$ for nonzero $s$, or $\lambda=1$ otherwise. Accept only if every entry of $U-\lambda
-V$ has magnitude at most $10^{-8}$ in double precision (64-bit arithmetic per real component). This
-checks the full operation within numerical tolerance, allowing a global phase (one common complex
-factor of magnitude one). Record that phase for any later controlled use, where it can affect the
-surrounding circuit~\cite{burgholzer-wille,qiskit-phase}.
+We will count a rewrite only if we can verify that it preserves the operation on every input. Removing a phase gate, for example, can leave the output on an all-zero input unchanged yet alter the result on a superposition~\cite{burgholzer-wille}. For circuits of up to eight qubits, we will compare the full matrices of the original circuit and the rewrite to a tolerance of $10^{-8}$. We will allow a global phase difference and record it because it can affect the result when another qubit controls the operation~\cite{araujo}.
 
-Validate the checker on phase changes, incorrect wire order, circuits that agree only on zero input,
-and known CX minima of 0 for identity (no change), 1 for CX, 2 for iSWAP (exchange with phase
-factors), and 3 for SWAP (exchange of qubit states). Reject unsupported operations, measurements,
-resets, classical conditionals, and width changes. Retain the starting circuit as a fallback. Choose
-the fewest CX gates, breaking ties by CX depth (sequential CX layers) and earliest
-verification~\cite{shende}.
+We will use QCEC to check larger circuits~\cite{qcec-doc}. When a method changes only a few sections, we can instead check each replacement, confirm that the other gates match, and bound the combined error by the same tolerance~\cite{nielsen-chuang}. We will test the checker with deliberately incorrect rewrites and with circuits for which prior work establishes the minimum CX count~\cite{shende}. We will count gates in the same gate set for every method, including any gates a rewrite needs to restore the original qubit order. If we cannot verify an improvement, we will keep the starting circuit.
 
-Report model wins, ties, losses, and total and median CX differences on the level-3 inputs. Include
-depth, failures, and savings available by 10, 60, and 180 seconds. Compare final gate counts from
-the two starting points and check whether improvements recur in repeats. Inspect representative wins
-alongside similar ties and losses to identify the structures responsible.
+For each model and each independent run, we will report the fraction of level-3 circuits on which the model beats the best conventional CX count. We will count equal results as ties and report the total and median differences in CX count. To see where the gains recur, we will compare the two runs on the same circuits and examine the results by starting point and circuit family. We will report verification failures, CX depth (the number of successive CX layers), and elapsed time separately.
 
 \Needspace{8\baselineskip}
 \section{Preliminary Findings and Expected Results}
@@ -146,9 +100,7 @@ verifies. These results motivate testing frontier models, broader constructions,
 conventional search.
 
 I expect QUESO to recover many reductions left by Qiskit. LLMs may retain an advantage where
-coordinated changes across repeated operations help. The study will establish where those gains
-recur and what they cost in time. If conventional search reaches the same or better circuits sooner,
-it is the more effective second pass for those cases.
+coordinated changes across repeated operations help. The study will establish where those gains recur and how often conventional search finds the same or greater savings.
 
 The thesis will deliver the benchmark circuits, tested verifier, model and compiler interfaces,
 complete trial logs, and a report explaining when LLMs add value to circuit optimization.
@@ -173,10 +125,10 @@ complete trial logs, and a report explaining when LLMs add value to circuit opti
     protocol. \\
   \addlinespace[2pt]
   February 3--16 &
-    Run conventional comparisons and the first half of the LLM trials. \\
+    Run conventional comparisons and the LLM trials. \\
   \addlinespace[2pt]
   February 17--March 2 &
-    Complete the main trials and repeats. Reproduce result tables from verified outputs. \\
+    Retry the trials as needed, reproducing result tables from verified outputs. \\
   \addlinespace[2pt]
   March 3--16 &
     Analyse gate counts, depth, time, and starting-point effects by circuit family. Inspect
